@@ -1,124 +1,127 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-
+import { useEffect, useState } from "react"
 import {
   PieChart,
   Pie,
+  Cell,
   Tooltip,
   ResponsiveContainer,
-  Cell,
-} from 'recharts';
+} from "recharts"
 
 export default function Home() {
-  const [vendor, setVendor] = useState('');
-  const [amount, setAmount] = useState('');
+  const [vendor, setVendor] = useState("")
+  const [plan, setPlan] = useState("")
+  const [spend, setSpend] = useState("")
+  const [seats, setSeats] = useState("")
+  const [useCase, setUseCase] = useState("")
 
-  const [vendors, setVendors] = useState<
-    { name: string; amount: number; savings: number }[]
-  >([]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('vendors');
-
-    if (saved) {
-      setVendors(JSON.parse(saved));
+  const [vendors, setVendors] = useState<any[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("vendors")
+      return saved ? JSON.parse(saved) : []
     }
-  }, []);
+    return []
+  })
 
   useEffect(() => {
-    localStorage.setItem('vendors', JSON.stringify(vendors));
-  }, [vendors]);
+    localStorage.setItem(
+      "vendors",
+      JSON.stringify(vendors)
+    )
+  }, [vendors])
 
   const addVendor = () => {
-    if (!vendor || !amount) return;
-
-    const monthlyAmount = Number(amount);
-
-    let savings = 0;
-
-    if (monthlyAmount >= 20) {
-      savings = 5;
-    } else if (monthlyAmount >= 10) {
-      savings = 2;
-    }
+    if (!vendor || !spend) return
 
     const newVendor = {
       name: vendor,
-      amount: monthlyAmount,
-      savings,
-    };
+      plan,
+      spend: Number(spend),
+      seats: Number(seats),
+      useCase,
+    }
 
-    setVendors([...vendors, newVendor]);
+    setVendors([...vendors, newVendor])
 
-    setVendor('');
-    setAmount('');
-  };
+    setVendor("")
+    setPlan("")
+    setSpend("")
+    setSeats("")
+    setUseCase("")
+  }
 
   const removeVendor = (index: number) => {
-    const updated = vendors.filter((_, i) => i !== index);
-    setVendors(updated);
-  };
+    const updated = vendors.filter((_, i) => i !== index)
+    setVendors(updated)
+  }
 
-  const totalSpend = vendors.reduce((sum, v) => sum + v.amount, 0);
+  const totalSpend = vendors.reduce(
+    (acc, curr) => acc + curr.spend,
+    0
+  )
 
-  const totalSavings = vendors.reduce((sum, v) => sum + v.savings, 0);
+  const totalSavings = vendors.reduce(
+    (acc, curr) => acc + curr.spend * 0.25,
+    0
+  )
 
-  const annualSavings = totalSavings * 12;
+  const annualSavings = totalSavings * 12
+
+  const chartData = vendors.map((v) => ({
+    name: v.name,
+    value: v.spend,
+  }))
 
   const COLORS = [
-    '#2563eb',
-    '#16a34a',
-    '#7c3aed',
-    '#ea580c',
-    '#dc2626',
-    '#0891b2',
-  ];
+    "#2563eb",
+    "#16a34a",
+    "#dc2626",
+    "#9333ea",
+    "#f59e0b",
+  ]
 
   return (
     <div
       style={{
-        maxWidth: 1200,
-        margin: '40px auto',
-        padding: '30px',
-        fontFamily: 'Arial, sans-serif',
+        minHeight: "100vh",
+        background: "#f5f7fb",
+        padding: "40px",
+        fontFamily: "Arial",
       }}
     >
-      <h1
-        style={{
-          fontSize: '48px',
-          fontWeight: 'bold',
-          marginBottom: '10px',
-          color: '#0f172a',
-        }}
-      >
-        AI Spend Audit
-      </h1>
-
-      <p
-        style={{
-          color: '#475569',
-          marginBottom: '40px',
-          fontSize: '18px',
-        }}
-      >
-        Analyze SaaS and AI tool spending to identify cost savings.
-      </p>
-
       <div
         style={{
-          backgroundColor: 'white',
-          padding: '24px',
-          borderRadius: '16px',
-          boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
-          marginBottom: '30px',
+          maxWidth: "1000px",
+          margin: "0 auto",
         }}
       >
+        <h1
+          style={{
+            fontSize: "40px",
+            fontWeight: "bold",
+            marginBottom: "10px",
+          }}
+        >
+          AI Spend Audit
+        </h1>
+
+        <p
+          style={{
+            color: "#555",
+            marginBottom: "30px",
+          }}
+        >
+          Analyze SaaS and AI tool spending to identify cost savings.
+        </p>
+
         <div
           style={{
-            display: 'flex',
-            gap: '12px',
-            flexWrap: 'wrap',
+            background: "white",
+            padding: "25px",
+            borderRadius: "16px",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.08)",
+            marginBottom: "30px",
           }}
         >
           <input
@@ -127,269 +130,254 @@ export default function Home() {
             value={vendor}
             onChange={(e) => setVendor(e.target.value)}
             style={{
-              flex: 1,
-              minWidth: '250px',
-              padding: '14px',
-              borderRadius: '10px',
-              border: '1px solid #cbd5e1',
-              fontSize: '16px',
+              width: "100%",
+              padding: "12px",
+              marginBottom: "12px",
+              borderRadius: "10px",
+              border: "1px solid #ccc",
+            }}
+          />
+
+          <input
+            type="text"
+            placeholder="Plan (Plus, Team, Pro...)"
+            value={plan}
+            onChange={(e) => setPlan(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              marginBottom: "12px",
+              borderRadius: "10px",
+              border: "1px solid #ccc",
             }}
           />
 
           <input
             type="number"
             placeholder="Monthly Spend"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            value={spend}
+            onChange={(e) => setSpend(e.target.value)}
             style={{
-              width: '200px',
-              padding: '14px',
-              borderRadius: '10px',
-              border: '1px solid #cbd5e1',
-              fontSize: '16px',
+              width: "100%",
+              padding: "12px",
+              marginBottom: "12px",
+              borderRadius: "10px",
+              border: "1px solid #ccc",
             }}
           />
+
+          <input
+            type="number"
+            placeholder="Number of Seats"
+            value={seats}
+            onChange={(e) => setSeats(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              marginBottom: "12px",
+              borderRadius: "10px",
+              border: "1px solid #ccc",
+            }}
+          />
+
+          <select
+            value={useCase}
+            onChange={(e) => setUseCase(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              marginBottom: "12px",
+              borderRadius: "10px",
+              border: "1px solid #ccc",
+            }}
+          >
+            <option value="">Select Use Case</option>
+            <option value="coding">Coding</option>
+            <option value="writing">Writing</option>
+            <option value="research">Research</option>
+            <option value="data">Data</option>
+            <option value="mixed">Mixed</option>
+          </select>
 
           <button
             onClick={addVendor}
             style={{
-              backgroundColor: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              padding: '14px 22px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              fontSize: '16px',
+              background: "#2563eb",
+              color: "white",
+              padding: "12px 20px",
+              border: "none",
+              borderRadius: "10px",
+              cursor: "pointer",
+              fontWeight: "bold",
             }}
           >
             Add Vendor
           </button>
         </div>
-      </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '20px',
-          marginBottom: '40px',
-        }}
-      >
         <div
           style={{
-            backgroundColor: 'white',
-            padding: '24px',
-            borderRadius: '16px',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+            gap: "20px",
+            marginBottom: "30px",
           }}
         >
-          <h3>Total Spend</h3>
-
-          <h2
+          <div
             style={{
-              fontSize: '32px',
-              color: '#2563eb',
-              marginTop: '10px',
+              background: "white",
+              padding: "20px",
+              borderRadius: "14px",
             }}
           >
-            ${totalSpend}
-          </h2>
+            <h3>Total Spend</h3>
+            <h2>${totalSpend}</h2>
+          </div>
+
+          <div
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "14px",
+            }}
+          >
+            <h3>Potential Savings</h3>
+            <h2>${totalSavings.toFixed(2)}</h2>
+          </div>
+
+          <div
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "14px",
+            }}
+          >
+            <h3>Annual Savings</h3>
+            <h2>${annualSavings.toFixed(2)}</h2>
+          </div>
         </div>
 
         <div
           style={{
-            backgroundColor: 'white',
-            padding: '24px',
-            borderRadius: '16px',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
+            background: "white",
+            padding: "25px",
+            borderRadius: "16px",
+            marginBottom: "30px",
           }}
         >
-          <h3>Potential Savings</h3>
-
-          <h2
-            style={{
-              fontSize: '32px',
-              color: '#16a34a',
-              marginTop: '10px',
-            }}
-          >
-            ${totalSavings.toFixed(2)}
-          </h2>
-        </div>
-
-        <div
-          style={{
-            backgroundColor: 'white',
-            padding: '24px',
-            borderRadius: '16px',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
-          }}
-        >
-          <h3>Annual Savings</h3>
-
-          <h2
-            style={{
-              fontSize: '32px',
-              color: '#7c3aed',
-              marginTop: '10px',
-            }}
-          >
-            ${annualSavings.toFixed(2)}
-          </h2>
-        </div>
-      </div>
-
-      {vendors.length > 0 && (
-        <div
-          style={{
-            backgroundColor: 'white',
-            padding: '24px',
-            borderRadius: '16px',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
-            marginBottom: '40px',
-          }}
-        >
-          <h2
-            style={{
-              marginBottom: '20px',
-              color: '#0f172a',
-            }}
-          >
+          <h2 style={{ marginBottom: "20px" }}>
             Spend Breakdown
           </h2>
 
-          <div style={{ width: '100%', height: 350 }}>
-            <ResponsiveContainer>
+          {vendors.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={vendors}
-                  dataKey="amount"
-                  nameKey="name"
-                  outerRadius={120}
+                  data={chartData}
+                  dataKey="value"
+                  outerRadius={100}
                   label
                 >
-                  {vendors.map((_, index) => (
+                  {chartData.map((_, index) => (
                     <Cell
                       key={index}
-                      fill={COLORS[index % COLORS.length]}
+                      fill={
+                        COLORS[index % COLORS.length]
+                      }
                     />
                   ))}
                 </Pie>
-
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-          </div>
+          ) : (
+            <p>No vendor data available.</p>
+          )}
         </div>
-      )}
 
-      <h2
-        style={{
-          marginBottom: '20px',
-          color: '#0f172a',
-          fontSize: '28px',
-        }}
-      >
-        Audit Results
-      </h2>
-
-      {vendors.length === 0 ? (
         <div
           style={{
-            backgroundColor: 'white',
-            padding: '24px',
-            borderRadius: '16px',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
+            background: "white",
+            padding: "25px",
+            borderRadius: "16px",
           }}
         >
-          No vendors added yet.
+          <h2 style={{ marginBottom: "20px" }}>
+            Audit Results
+          </h2>
+
+          {vendors.length === 0 ? (
+            <p>No vendors added yet.</p>
+          ) : (
+            vendors.map((v, index) => {
+              const savings = v.spend * 0.25
+
+              return (
+                <div
+                  key={index}
+                  style={{
+                    padding: "20px",
+                    border: "1px solid #eee",
+                    borderRadius: "12px",
+                    marginBottom: "15px",
+                  }}
+                >
+                  <h3>
+                    {v.name} — ${v.spend}
+                  </h3>
+
+                  <p>
+                    <strong>Plan:</strong> {v.plan}
+                  </p>
+
+                  <p>
+                    <strong>Seats:</strong> {v.seats}
+                  </p>
+
+                  <p>
+                    <strong>Use Case:</strong>{" "}
+                    {v.useCase}
+                  </p>
+
+                  <p>
+                    <strong>
+                      Save ${savings.toFixed(2)}
+                    </strong>
+                  </p>
+
+                  <p>
+                    You are likely overpaying based on
+                    your current usage pattern.
+                  </p>
+
+                  <p>
+                    Recommendation: Consider switching
+                    to a lower-cost plan or optimizing
+                    seat allocation.
+                  </p>
+
+                  <button
+                    onClick={() =>
+                      removeVendor(index)
+                    }
+                    style={{
+                      marginTop: "10px",
+                      background: "#dc2626",
+                      color: "white",
+                      border: "none",
+                      padding: "10px 16px",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              )
+            })
+          )}
         </div>
-      ) : (
-        vendors.map((v, index) => (
-          <div
-            key={index}
-            style={{
-              backgroundColor: 'white',
-              padding: '24px',
-              borderRadius: '16px',
-              marginBottom: '20px',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: '20px',
-                flexWrap: 'wrap',
-              }}
-            >
-              <div>
-                <h3
-                  style={{
-                    marginBottom: '10px',
-                    textTransform: 'capitalize',
-                    fontSize: '24px',
-                    color: '#0f172a',
-                  }}
-                >
-                  {v.name} — ${v.amount}
-                </h3>
-
-                <p
-                  style={{
-                    color: '#16a34a',
-                    fontWeight: 'bold',
-                    fontSize: '18px',
-                  }}
-                >
-                  Save ${v.savings.toFixed(2)}
-                </p>
-
-                <p
-                  style={{
-                    color: '#475569',
-                    marginTop: '14px',
-                    lineHeight: '1.6',
-                  }}
-                >
-                  You are likely overpaying based on your current
-                  usage pattern.
-                </p>
-
-                <p
-                  style={{
-                    color: '#334155',
-                    marginTop: '10px',
-                    lineHeight: '1.6',
-                  }}
-                >
-                  Recommendation: Consider switching to a lower-cost
-                  plan or optimizing seat allocation.
-                </p>
-              </div>
-
-              <button
-                onClick={() => removeVendor(index)}
-                style={{
-                  backgroundColor: '#ef4444',
-                  color: 'white',
-                  border: 'none',
-                  padding: '12px 18px',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                }}
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        ))
-      )}
+      </div>
     </div>
-  );
+  )
 }
